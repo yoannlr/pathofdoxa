@@ -3,45 +3,31 @@
 
 using namespace std;
 
-class Window {
-public:
-	SDL_Window *window;
-	SDL_Renderer *renderer;
-	SDL_Event event;
-	bool running;
-	int width, height;
+const int WIDTH = 1280;
+const int HEIGHT = 720;
 
-	Window(int w, int h) {
-		width = w;
-		height = h;
-		window = SDL_CreateWindow("Path of doxa", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
-		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-		running = true;
-	}
+SDL_Texture* loadImage(const char* path, SDL_Renderer *renderer) {
+	SDL_Surface *surface = SDL_LoadBMP(path);
+	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+	return texture;
+}
 
-	~Window() {
-		SDL_DestroyRenderer(renderer);
-		SDL_DestroyWindow(window);
-	}
+void renderImage(SDL_Texture *texture, SDL_Renderer *renderer, int x, int y, int w, int h) {
+	SDL_Rect rect;
+	rect.x = x;
+	rect.y = y;
+	rect.w = w;
+	rect.h = h;
+	SDL_RenderCopy(renderer, texture, NULL, &rect);
+}
 
-	void loop() {
-		while(running) {
-			SDL_WaitEvent(&event);
-			if(SDL_PollEvent(&event)) {
-				switch(event.type) {
-					case SDL_QUIT: running = false; break;
-				}
-			}
-		}
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Event event;
+bool running = true;
 
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_RenderClear(renderer);
-
-		//Affichage ici
-
-		SDL_RenderPresent(renderer);
-	}
-};
+SDL_Texture *img;
 
 int main(int argc, char const *argv[])
 {
@@ -50,8 +36,26 @@ int main(int argc, char const *argv[])
 		return 1;
 	}
 
-	Window gameWindow(1280, 720);
-	gameWindow.loop();
+	window = SDL_CreateWindow("Path of doxa", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+
+	img = loadImage("img.bmp", renderer);
+
+	while(running) {
+		SDL_WaitEvent(&event);
+		if(SDL_PollEvent(&event)) {
+			switch(event.type) {
+			case SDL_QUIT: running = false; break;
+			}
+		}
+
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderClear(renderer);
+
+		renderImage(img, renderer, 10, 20, 100, 100);
+
+		SDL_RenderPresent(renderer);
+	}
 
 	SDL_Quit();
 
